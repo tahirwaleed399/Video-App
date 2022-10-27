@@ -27,7 +27,7 @@ exports.upload = catchAsyncErrors(async (req, res, next) => {
 
     const videoPath = path.join(__dirname, "..", "files", fileName);
     // Storing video into folder
-    files[key].mv(videoPath, (err) => {
+    files[key].mv(videoPath,async  (err) => {
       if (err) return res.status(500).json({ status: "error", message: err });
       // AFter the video is uploaded
 
@@ -55,9 +55,9 @@ exports.upload = catchAsyncErrors(async (req, res, next) => {
               name: files[key].name.split(".")[0],
               videoSlug: fileName,
               user: req.user._id,
-              thumbnail : {
+              thumbnail : thumbnail ?  {
                 url , public_id
-              }
+              } : undefined
             });
             videos.push(video);
           })
@@ -65,6 +65,15 @@ exports.upload = catchAsyncErrors(async (req, res, next) => {
             console.log('some error occurred');
           });
       }
+      if(process.env.NODE_ENV === "production"){
+        const video = await Video.create({
+          name: files[key].name.split(".")[0],
+          videoSlug: fileName,
+          user: req.user._id,
+          thumbnail :  undefined
+        });
+      }
+     
     });
   });
 
